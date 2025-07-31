@@ -40,6 +40,7 @@ A Python script that extracts comprehensive video metadata from any YouTube chan
 
 2. **Install dependencies**:
    ```bash
+   python3 -m venv .venv
    pip install -r requirements.txt
    ```
 
@@ -47,8 +48,8 @@ A Python script that extracts comprehensive video metadata from any YouTube chan
 
    **Option A: Using a named pipe (recommended for 1Password Environments users)**
    ```bash
-   # Create a named pipe that 1Password can write to
-   mkfifo .env
+   # In 1Pasword - Create a named Environment pipe that 1Password can write to
+   # .env
    # 1Password will write your API key to this pipe
    ```
 
