@@ -20,32 +20,57 @@ import requests
 import json
 import csv
 from datetime import datetime, timezone
-from dotenv import load_dotenv
-
-# Load environment variables from .env file (supports named pipes)
-def load_env_from_pipe():
-    """Load environment variables from .env file, handling named pipes."""
-    env_vars = {}
-    try:
-        with open('.env', 'r') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    key, value = line.split('=', 1)
-                    env_vars[key] = value
-    except Exception as e:
-        print(f"Warning: Could not read .env file: {e}")
-    return env_vars
+from dotenv import dotenv_values
 
 # Load environment variables
-env_vars = load_env_from_pipe()
-API_KEY = env_vars.get("YT_API_KEY") or os.getenv("YT_API_KEY")
+import stat
+print("DEBUG: Loading .env file...")
 
-# Debug: Check if API key was loaded (only show first few characters for security)
+env_vars = {}
+
+# Check if .env is a FIFO pipe
+if os.path.exists(".env"):
+    try:
+        file_stat = os.stat(".env")
+        if stat.S_ISFIFO(file_stat.st_mode):
+            print("DEBUG: .env is a FIFO pipe (1Password integration)")
+            # Read directly from the named pipe
+            try:
+                with open(".env", "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            key, value = line.split("=", 1)
+                            env_vars[key] = value
+                print(f"DEBUG: Loaded {len(env_vars)} vars from FIFO pipe")
+            except Exception as e:
+                print(f"ERROR: Failed to read from FIFO pipe: {e}")
+                print("Make sure 1Password is configured to write to this pipe")
+        else:
+            print(f"DEBUG: .env is regular file ({file_stat.st_size} bytes)")
+            # Use dotenv_values for regular files
+            try:
+                env_vars = dotenv_values(".env")
+                print(f"DEBUG: Loaded {len(env_vars)} vars from .env")
+            except Exception as e:
+                print(f"ERROR: Failed to load .env: {e}")
+    except OSError as e:
+        print(f"ERROR: Cannot stat .env: {e}")
+
+# Fallback to environment variables if .env loading failed
+if not env_vars:
+    print("DEBUG: No .env file found, checking environment variables")
+    # Check for YT_API_KEY in environment variables
+    if os.getenv("YT_API_KEY"):
+        env_vars["YT_API_KEY"] = os.getenv("YT_API_KEY")
+        print("DEBUG: Loaded API key from environment variable")
+
+API_KEY = env_vars.get("YT_API_KEY")
+
 if API_KEY:
-    print(f"API key loaded successfully: {API_KEY[:10]}...")
+    print(f"DEBUG: API key loaded: {API_KEY[:8]}...")
 else:
-    print("No API key found")
+    print("ERROR: No API key found")
 BASE_URL = "https://www.googleapis.com/youtube/v3"
 
 if not API_KEY:

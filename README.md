@@ -53,12 +53,7 @@ A Python script that extracts comprehensive video metadata from any YouTube chan
    # 1Password will write your API key to this pipe
    ```
 
-   **Option B: Using a regular .env file**
-   ```bash
-   echo "YT_API_KEY=your_api_key_here" > .env
-   ```
-
-   **Option C: Environment variable**
+   **Option B: Environment variable**
    ```bash
    export YT_API_KEY=your_api_key_here
    ```
